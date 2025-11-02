@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "darshan0011/zomato"
         KUBECONFIG = "/var/lib/jenkins/.kube/config"
+        DOCKER_CREDENTIALS = credentials('dockerhub-creds')
     }
 
     stages {
@@ -26,7 +27,7 @@ pipeline {
             steps {
                 sh '''
                     echo "==== Logging into DockerHub ===="
-                    docker login -u "darshan0011" -p "YOUR_DOCKERHUB_PASSWORD"
+                    echo "$DOCKER_CREDENTIALS_PSW" | docker login -u "$DOCKER_CREDENTIALS_USR" --password-stdin
 
                     echo "==== Pushing Image to DockerHub ===="
                     docker push $DOCKER_IMAGE:$BUILD_NUMBER
