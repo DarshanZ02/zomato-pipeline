@@ -4,7 +4,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = "darshan0011/zomato"
         KUBECONFIG = "/var/lib/jenkins/.kube/config"
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
     }
 
     stages {
@@ -27,7 +26,7 @@ pipeline {
             steps {
                 sh '''
                     echo "==== Logging into DockerHub ===="
-                    echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin
+                    docker login -u "darshan0011" -p "YOUR_DOCKERHUB_PASSWORD"
 
                     echo "==== Pushing Image to DockerHub ===="
                     docker push $DOCKER_IMAGE:$BUILD_NUMBER
@@ -43,11 +42,11 @@ pipeline {
             steps {
                 sh '''
                     echo "==== Updating Deployment YAML ===="
-                    sed -i "s|image: .*|image: $DOCKER_IMAGE:$BUILD_NUMBER|" k8s/deployment.yml
+                    sed -i "s|image: .*|image: $DOCKER_IMAGE:$BUILD_NUMBER|" zomato-pipeline/K8S/deployment.yaml
 
                     echo "==== Applying Deployment and Service ===="
-                    kubectl apply -f k8s/deployment.yml
-                    kubectl apply -f k8s/service.yml
+                    kubectl apply -f zomato-pipeline/K8S/deployment.yaml
+                    kubectl apply -f zomato-pipeline/K8S/service.yaml
                 '''
             }
         }
@@ -56,8 +55,8 @@ pipeline {
             steps {
                 sh '''
                     echo "==== Setting up Prometheus & Grafana ===="
-                    kubectl apply -f monitoring/prometheus-deploy.yml
-                    kubectl apply -f monitoring/grafana-deploy.yml
+                    kubectl apply -f zomato-pipeline/Monitoring/prometheus-deploy.yaml
+                    kubectl apply -f zomato-pipeline/Monitoring/grafana-deploy.yaml
                 '''
             }
         }
