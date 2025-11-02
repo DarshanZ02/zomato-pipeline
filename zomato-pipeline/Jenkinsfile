@@ -26,24 +26,7 @@ pipeline {
             steps {
                 sh '''
                     echo "==== Logging into DockerHub ===="
-                    docker login -u "darshan0011" -p "YOUR_DOCKERHUB_PASSWORD"
-
-                    echo "==== Pushing Image to DockerHub ===="
-                    docker push darshan0011/zomato:$BUILD_NUMBER
-
-                    echo "==== Tagging and Pushing 'latest' ===="
-                    docker tag darshan0011/zomato:$BUILD_NUMBER darshan0011/zomato:latest
-                    docker push darshan0011/zomato:latest
-                '''
-            }
-        }
-}
-
-        stage('Push to DockerHub') {
-            steps {
-                sh '''
-                    echo "==== Logging into DockerHub ===="
-                    docker login -u "darshan0011" -p "YOUR_DOCKERHUB_PASSWORD"
+                    docker login -u "darshan0011" -p "Darshan@2004$$"
 
                     echo "==== Pushing Image to DockerHub ===="
                     docker push darshan0011/zomato:$BUILD_NUMBER
