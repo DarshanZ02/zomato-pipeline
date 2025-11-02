@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "darshan0011/zomato"
+        KUBECONFIG = "/var/lib/jenkins/.kube/config"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/DarshanZ02/zomato-pipeline.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    echo "==== Building Docker Image ===="
+                    docker build -t darshan0011/zomato:$BUILD_NUMBER .
+                '''
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                sh '''
+                    echo "==== Logging into DockerHub ===="
+                    docker login -u "darshan0011" -p "YOUR_DOCKERHUB_PASSWORD"
+
+                    echo "==== Pushing Image to DockerHub ===="
+                    docker push darshan0011/zomato:$BUILD_NUMBER
+
+                    echo "==== Tagging and Pushing 'latest' ===="
+                    docker tag darshan0011/zomato:$BUILD_NUMBER darshan0011/zomato:latest
+                    docker push darshan0011/zomato:latest
+                '''
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                sh '''
+                    echo "==== Updating Deployment YAML ===="
+                    sed -i "s|image: .*|image: darshan0011/zomato:$BUILD_NUMBER|" k8s/deployment.yml
+
+                    echo "==== Applying Deployment and Service ===="
+                    kubectl apply -f k8s/deployment.yml
+                    kubectl apply -f k8s/service.yml
+                '''
+            }
+        }
+
+        stage('Setup Monitoring') {
+            steps {
+                sh '''
+                    echo "==== Setting up Prometheus & Grafana ===="
+                    kubectl apply -f monitoring/prometheus-deploy.yml
+                    kubectl apply -f monitoring/grafana-deploy.yml
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                    echo "==== Verifying Services ===="
+                    kubectl get svc -o wide
+                '''
+            }
+        }
+    }
+}
